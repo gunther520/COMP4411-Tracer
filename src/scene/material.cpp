@@ -19,7 +19,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
     // somewhere in your code in order to compute shadows and light falloff.
 
 	
-	vec3f I = ke + (scene->getAmbientSum().multiply(ka));
+	vec3f I = ke + (scene->getAmbientSum().clamp().multiply(ka));
 	list<Light*>::const_iterator litr;
 	for ( litr= scene->beginLights(); litr != scene->endLights(); ++litr) {
 
@@ -36,12 +36,12 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		reflectDir =reflectDir.normalize();
 
 		float specularFactor = max(0.0, -r.getDirection() * reflectDir);
-		vec3f specular = ks * pow(specularFactor, (int)(shininess * 128));  // Adjust shininess to control highlight sharpness
+		vec3f specular = ks * pow(specularFactor, (shininess * 128.0f));  // Adjust shininess to control highlight sharpness
 		
 		I += atten * (*litr)->getColor(atten) * (diffuse + specular);
 
 	}
 
 
-	return I;
+	return I.clamp();
 }

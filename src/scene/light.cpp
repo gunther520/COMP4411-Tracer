@@ -51,10 +51,7 @@ double PointLight::distanceAttenuation( const vec3f& P ) const
 					traceUI->getQuadraticAttenuation() * d * d);
 
 	atten = ((atten) < (1.0)) ? (atten) : (1.0);
-	//print all attenuation values
-	std::cout << "Constant: " << traceUI->getAttenuationConstant() << " Linear: " << traceUI->getLinearAttenuation() << " Quadratic: " << traceUI->getQuadraticAttenuation() << std::endl;
-	if (atten > 1.0)
-		atten = 1.0;
+	printf("atten: %f\n", atten);
 	return atten;
 }
 

@@ -244,9 +244,9 @@ TraceUI::TraceUI() {
 	// init.
 	m_nDepth = 0;
 	m_nSize = 150;
-	m_nAttenuationConstant = 0;
-	m_nLinearAttenuation = 0;
-	m_nQuadraticAttenuation = 0;
+	m_nAttenuationConstant = 0.1;
+	m_nLinearAttenuation = 0.2;
+	m_nQuadraticAttenuation = 0.2;
 
 	m_mainWindow = new Fl_Window(100, 40, 320, 200, "Ray <Not Loaded>");
 		m_mainWindow->user_data((void*)(this));	// record self to be used by static callback functions
@@ -289,7 +289,7 @@ TraceUI::TraceUI() {
 		m_attenuationConstant->minimum(0);
 		m_attenuationConstant->maximum(1);
 		m_attenuationConstant->step(0.05);
-		m_attenuationConstant->value(0);
+		m_attenuationConstant->value(0.1);
 		m_attenuationConstant->align(FL_ALIGN_RIGHT);
 		m_attenuationConstant->callback(cb_attenuationConstantSlides);
 
@@ -302,7 +302,7 @@ TraceUI::TraceUI() {
 		 m_linearAttenuation->minimum(0);
 		 m_linearAttenuation->maximum(1);
 		 m_linearAttenuation->step(0.05);
-		 m_linearAttenuation->value(0);
+		 m_linearAttenuation->value(0.2);
 		 m_linearAttenuation->align(FL_ALIGN_RIGHT);
 		 m_linearAttenuation->callback(cb_linearAttenuationSlides);
 
@@ -315,7 +315,7 @@ TraceUI::TraceUI() {
 		 m_quadraticAttenuation->minimum(0);
 		 m_quadraticAttenuation->maximum(1);
 		 m_quadraticAttenuation->step(0.05);
-		 m_quadraticAttenuation->value(0);
+		 m_quadraticAttenuation->value(0.3);
 		 m_quadraticAttenuation->align(FL_ALIGN_RIGHT);
 		 m_quadraticAttenuation->callback(cb_quadraticAttenuationSlides);
 
