@@ -147,6 +147,7 @@ bool Scene::intersect( const ray& r, isect& i ) const
 	isect cur;
 	bool have_one = false;
 
+
 	// try the non-bounded objects
 	for( j = nonboundedobjects.begin(); j != nonboundedobjects.end(); ++j ) {
 		if( (*j)->intersect( r, cur ) ) {
@@ -198,4 +199,10 @@ void Scene::initScene()
 		else
 			nonboundedobjects.push_back(*j);
 	}
+}
+
+void Scene::add_a(AmbientLight* light)
+{
+	ambient.push_back(light);
+	ambient_sum += light->getColor(ambient_sum);
 }

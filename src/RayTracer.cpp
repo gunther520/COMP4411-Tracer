@@ -38,9 +38,19 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-
+		vec3f Q= r.at(i.t);
+		ray r1(Q, r.getDirection());
 		const Material& m = i.getMaterial();
-		return m.shade(scene, r, i);
+		vec3f I = m.shade(scene, r1, i);
+		vec3f reflectDir = r.getDirection() - 2 * (r.getDirection() * i.N) * i.N;
+		reflectDir = reflectDir.normalize();
+		I += (traceRay(scene, ray(Q + RAY_EPSILON * reflectDir, reflectDir), thresh, depth + 1).mutiply(m.kr));
+
+
+		
+
+
+		return 
 	
 	} else {
 		// No intersection.  This ray travels to infinity, so we color

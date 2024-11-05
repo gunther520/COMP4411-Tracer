@@ -19,6 +19,7 @@ using namespace std;
 
 class Light;
 class Scene;
+class AmbientLight;
 
 class SceneElement
 {
@@ -251,7 +252,7 @@ public:
 
 public:
 	Scene() 
-		: transformRoot(), objects(), lights() {}
+		: transformRoot(), objects(), lights(), ambient(), ambient_sum(vec3f(0,0,0)){}
 	virtual ~Scene();
 
 	void add( Geometry* obj )
@@ -262,13 +263,18 @@ public:
 	void add( Light* light )
 	{ lights.push_back( light ); }
 
+	void add_a(AmbientLight* light);
+
 	bool intersect( const ray& r, isect& i ) const;
 	void initScene();
 
 	list<Light*>::const_iterator beginLights() const { return lights.begin(); }
 	list<Light*>::const_iterator endLights() const { return lights.end(); }
+
+	
         
 	Camera *getCamera() { return &camera; }
+	vec3f getAmbientSum() { return ambient_sum; }
 
 	
 
@@ -277,6 +283,8 @@ private:
 	list<Geometry*> nonboundedobjects;
 	list<Geometry*> boundedobjects;
     list<Light*> lights;
+	list<AmbientLight*> ambient;
+	vec3f ambient_sum;
     Camera camera;
 	
 	// Each object in the scene, provided that it has hasBoundingBoxCapability(),

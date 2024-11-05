@@ -43,6 +43,9 @@ public:
 		{ n[0] = v.n[0]; n[1] = v.n[1]; n[2] = v.n[2]; }
 	vec3f( const vec4f& v4 );
 
+	vec3f mutiply(const vec3f& b) 
+		{ return vec3f(n[0] *b.n[0], n[1] * b.n[1], n[2] * b.n[2]); }
+	
 	vec3f& operator	=( const vec3f& v )
 		{ n[0] = v.n[0]; n[1] = v.n[1]; n[2] = v.n[2]; return *this; }
 	vec3f& operator +=( const vec3f& v )
