@@ -39,14 +39,16 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
+		vec3f incidentDir = r.getDirection();
+		incidentDir.normalize();  // Ensure incident direction is normalized
+
 		vec3f Q= r.at(i.t);
-		ray r1(Q, r.getDirection());
+		ray r1(Q, incidentDir);
 		const Material& m = i.getMaterial();
 		vec3f I = m.shade(scene, r1, i);
 
 		if (depth < traceUI->getDepth()) {
-			vec3f incidentDir = r.getDirection();
-			incidentDir.normalize();  // Ensure incident direction is normalized
+
 
 			vec3f reflectDir = incidentDir - 2 * (incidentDir * i.N) * i.N;
 			reflectDir.normalize();  // Normalize the reflected direction
@@ -61,6 +63,51 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			vec3f reflectedColor = traceRay(scene, reflectedRay, thresh, depth + 1);
 
 			I+= reflectedColor.multiply(m.kr);
+
+			float n1, n2;
+			vec3f N = i.N;  // Surface normal
+			vec3f I = r.getDirection();  // Incident direction (normalized)
+
+			// Determine if we are inside or outside the material
+			if (I * N < 0) {
+				// Ray is entering the material
+				n1 = 1.0f;  // Assuming air
+				n2 = m.index;  // Material's index of refraction
+				N = N;  // Normal remains the same
+			}
+			else {
+				// Ray is exiting the material
+				n1 = m.index;  // Material's index of refraction
+				n2 = 1.0f;  // Assuming air
+				N = -N;  // Invert the normal !!! need special care
+
+			}
+
+			float eta = n1 / n2;
+			float cosThetaI = -(I * N);  // Dot product between I and N
+			float sin2ThetaI = max(0.0f, 1.0f - cosThetaI * cosThetaI);
+			float sin2ThetaT = eta * eta * sin2ThetaI;
+			if (sin2ThetaT <= 1.0f) {
+				// No total internal reflection
+				float cosThetaT = sqrt(1.0f - sin2ThetaT);
+				vec3f refractDir = eta * I + (eta * cosThetaI - cosThetaT) * N;
+				refractDir.normalize();  // Normalize the refracted direction
+
+				// Offset the origin to avoid self-intersection
+				origin = Q + refractDir * RAY_EPSILON;
+
+				// Create the refracted ray
+				ray refractedRay(origin, refractDir);
+
+				// Trace the refracted ray recursively
+				vec3f refractedColor = traceRay(scene, refractedRay, thresh, depth + 1);
+
+				I += refractedColor.multiply(m.kt);
+			}
+
+
+
+
 
 		}
 		

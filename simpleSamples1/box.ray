@@ -17,17 +17,13 @@ directional_light {
 	colour = (0.2,0.2,0.2);
 }
 
-
-rotate(0.25, 0.5, 1.3, 15.31, cone {
-				capped=false;
-				height=2;
-				bottom_radius=0.5;
-				top_radius=0.2;
+rotate( 1,1,1,1,
+	scale(1.6,
+		translate( -0.5,-0.5,-0.5,
+			box { 
 				material = { 
 					diffuse = (0.8,0.3,0.1);
 					specular = (0.9,0.4,0.0);
 					shininess = 0.6;
-					ambient = (0.5,0.5,0.5);
 				}
-		}
-)
+		})))
