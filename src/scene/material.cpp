@@ -19,7 +19,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
     // somewhere in your code in order to compute shadows and light falloff.
 
 	
-	vec3f I = ke + (scene->getAmbientSum().mutiply(ka));
+	vec3f I = ke + (scene->getAmbientSum().multiply(ka));
 	list<Light*>::const_iterator litr;
 	for ( litr= scene->beginLights(); litr != scene->endLights(); ++litr) {
 

@@ -8,7 +8,8 @@
 #include "scene/ray.h"
 #include "fileio/read.h"
 #include "fileio/parse.h"
-
+#include "ui/TraceUI.h"
+extern TraceUI* traceUI;
 // Trace a top-level ray through normalized window coordinates (x,y)
 // through the projection plane, and out into the scene.  All we do is
 // enter the main ray-tracing method, getting things started by plugging
@@ -42,15 +43,30 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		ray r1(Q, r.getDirection());
 		const Material& m = i.getMaterial();
 		vec3f I = m.shade(scene, r1, i);
-		vec3f reflectDir = r.getDirection() - 2 * (r.getDirection() * i.N) * i.N;
-		reflectDir = reflectDir.normalize();
-		I += (traceRay(scene, ray(Q + RAY_EPSILON * reflectDir, reflectDir), thresh, depth + 1).mutiply(m.kr));
 
+		if (depth < traceUI->getDepth()) {
+			vec3f incidentDir = r.getDirection();
+			incidentDir.normalize();  // Ensure incident direction is normalized
 
+			vec3f reflectDir = incidentDir - 2 * (incidentDir * i.N) * i.N;
+			reflectDir.normalize();  // Normalize the reflected direction
+
+			// Offset the origin to avoid self-intersection
+			vec3f origin = Q + reflectDir * RAY_EPSILON;
+
+			// Create the reflected ray
+			ray reflectedRay(origin, reflectDir);
+
+			// Trace the reflected ray recursively
+			vec3f reflectedColor = traceRay(scene, reflectedRay, thresh, depth + 1);
+
+			I+= reflectedColor.multiply(m.kr);
+
+		}
 		
 
 
-		return 
+		return I;
 	
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
