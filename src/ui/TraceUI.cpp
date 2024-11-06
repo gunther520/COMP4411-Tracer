@@ -107,6 +107,11 @@ void TraceUI::cb_quadraticAttenuationSlides(Fl_Widget* o, void* v)
 	((TraceUI*)(o->user_data()))->m_nQuadraticAttenuation=(((Fl_Slider *)o)->value());
 }
 
+void TraceUI::cb_thresholdValueSlides(Fl_Widget* o, void* v)
+{
+	((TraceUI*)(o->user_data()))->m_nThreshold=(((Fl_Slider *)o)->value());
+}
+
 void TraceUI::cb_render(Fl_Widget* o, void* v)
 {
 	char buffer[256];
@@ -225,6 +230,11 @@ double TraceUI::getQuadraticAttenuation()
 	return m_nQuadraticAttenuation;
 }
 
+double TraceUI::getThreshold()
+{
+	return m_nThreshold;
+}
+
 // menu definition
 Fl_Menu_Item TraceUI::menuitems[] = {
 	{ "&File",		0, 0, 0, FL_SUBMENU },
@@ -247,6 +257,7 @@ TraceUI::TraceUI() {
 	m_nAttenuationConstant = 0.1;
 	m_nLinearAttenuation = 0.2;
 	m_nQuadraticAttenuation = 0.2;
+	m_nThreshold = 0.005;
 
 	m_mainWindow = new Fl_Window(100, 40, 320, 200, "Ray <Not Loaded>");
 		m_mainWindow->user_data((void*)(this));	// record self to be used by static callback functions
@@ -318,6 +329,20 @@ TraceUI::TraceUI() {
 		 m_quadraticAttenuation->value(0.3);
 		 m_quadraticAttenuation->align(FL_ALIGN_RIGHT);
 		 m_quadraticAttenuation->callback(cb_quadraticAttenuationSlides);
+
+
+		 // threshold value
+		 m_thresholdValue = new Fl_Value_Slider(10, 155, 180, 20, "Threshold Value");
+		 m_thresholdValue->user_data((void*)(this));	// record self to be used by static callback functions
+		 m_thresholdValue->type(FL_HOR_NICE_SLIDER);
+		 m_thresholdValue->labelfont(FL_COURIER);
+		 m_thresholdValue->labelsize(12);
+		 m_thresholdValue->minimum(0);
+		 m_thresholdValue->maximum(0.5);
+		 m_thresholdValue->step(0.001);
+		 m_thresholdValue->value(0.005);
+		 m_thresholdValue->align(FL_ALIGN_RIGHT);
+		 m_thresholdValue->callback(cb_thresholdValueSlides);
 
 
 

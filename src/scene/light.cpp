@@ -79,7 +79,7 @@ vec3f PointLight::shadowAttenuation(const vec3f& P) const
 		if ((r.at(i.t) - r.getPosition()).length() < (position - r.getPosition()).length())
 			return (i.getMaterial().ke);
 		}
-	return vec3f(1, 1, 1);
+	return vec3f(1,1,1);
 
 }
 

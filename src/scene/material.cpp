@@ -33,17 +33,17 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		float diffuseFactor = max(0.0, i.N * lightDir);
 		vec3f diffuse = (kd * diffuseFactor).multiply(transparency);
 
-		vec3f reflectDir = (2 * (i.N * lightDir) * i.N) - lightDir;  // Reflection of light around the normal
+
+		vec3f reflectDir  = (2 * (i.N * lightDir) * i.N) - lightDir;  // Reflection of light around the normal
 		reflectDir =reflectDir.normalize();
 
 		float specularFactor = max(0.0, (- r.getDirection()) * reflectDir);
-		//float specularFactor = max(0.0, (lightDir+ (-(r.getDirection()/2))) * i.N);
+		//vec3f halfwayDir = (-r.getDirection() + lightDir).normalize();  // Halfway vector
+		//float specularFactor = max(0.0, i.N * halfwayDir);
 		vec3f specular = (ks * pow(specularFactor, (shininess * 128.0f))).multiply(transparency);  // Adjust shininess to control highlight sharpness
 		
 		I += atten.multiply(diffuse + specular);
 
 	}
-
-
 	return I.clamp();
 }

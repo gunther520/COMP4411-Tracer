@@ -18,13 +18,14 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 {
     ray r( vec3f(0,0,0), vec3f(0,0,0) );
     scene->getCamera()->rayThrough( x,y,r );
-	return traceRay( scene, r, vec3f(1.0,1.0,1.0), 0 ).clamp();
+	vec3f new_thresh(traceUI->getThreshold(), traceUI->getThreshold(), traceUI->getThreshold());
+	return traceRay( scene, r, new_thresh, 0 ).clamp();
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
 vec3f RayTracer::traceRay( Scene *scene, const ray& r, 
-	const vec3f& thresh, int depth )
+	const vec3f& thresh, int depth, stack<float> mediumStack  ,list<vec3f> k_product)
 {
 	isect i;
 
@@ -46,9 +47,48 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		const Material& m = i.getMaterial();
 		vec3f I = m.shade(scene, r1, i);
 
+		if (mediumStack.empty()) {
+			mediumStack.push(1.0);  // Push the air refractive index onto the stack
+		}
+
+
+
+		if (k_product.front()[0] < thresh[0] && k_product.back()[0] < thresh[0] &&
+			k_product.front()[1] < thresh[1] && k_product.back()[1] < thresh[1] &&
+			k_product.front()[2] < thresh[2] && k_product.back()[2] < thresh[2]) {
+
+			return I;
+		}
+
+
+		// Initially set the medium's refractive index (n1 and n2)
+		float n1 = mediumStack.top();
+		float n2 = m.index;
+		vec3f N = i.N;
+		if (incidentDir * N < 0) {
+			// Ray is entering the material
+			mediumStack.push(n2);  // Push the new medium onto the stack
+			k_product.back() = k_product.back().multiply(m.kt);  // Update the cumulative kt product
+			k_product.front() = k_product.front().multiply(m.kr);  // Update the cumulative kr product
+		}
+		else {
+			// Ray is exiting the material
+			n2 = n1;                    // Ray exits to previous medium
+			n1 = m.index;				// Get the current medium
+			mediumStack.pop();          // Pop the current medium off the stack
+			//k_product = { k_product.front()/m.kr,k_product.back()/m.kt };
+			N = -N;                     // Invert the normal for exiting
+		}
+
+
+		
+
+
+
+		
+
+
 		if (depth < traceUI->getDepth()) {
-
-
 			vec3f reflectDir = incidentDir - 2 * (incidentDir * i.N) * i.N;
 			//vec3f reflectDir = (2 * (incidentDir * i.N) * i.N) - incidentDir;  // Reflection of light around the normal
 			reflectDir = reflectDir.normalize();  // Normalize the reflected direction
@@ -60,48 +100,29 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			ray reflectedRay(reflectOrigin, reflectDir);
 
 			// Trace the reflected ray recursively
-			vec3f reflectedColor = traceRay(scene, reflectedRay, thresh, depth + 1);
+			vec3f reflectedColor = traceRay(scene, reflectedRay, thresh, depth + 1,mediumStack,k_product);
 
-			I+= reflectedColor.multiply(m.kr);
+			I += reflectedColor.multiply(m.kr); // Reflection component
 
-			float n1, n2;
-			vec3f N = i.N;  // Surface normal
-
-
-			// Determine if we are inside or outside the material
-			if (incidentDir * N < 0) {
-				// Ray is entering the material
-				n1 = 1.0f;  // Assuming air
-				n2 = m.index;  // Material's index of refraction
-			}
-			else {
-				// Ray is exiting the material
-				n1 = m.index;  // Material's index of refraction
-				n2 = 1.0f;  // Assuming air
-				N = -N;  // Invert the normal !!! need special care
-
-			}
 
 			float eta = n1 / n2;
 			float cosThetaI = (-incidentDir * N);  // Dot product between I and N
 			float sin2ThetaI = max(0.0f, 1.0f - cosThetaI * cosThetaI);
 			float sin2ThetaT = eta * eta * sin2ThetaI;
+
+
+			vec3f refractedColor(0, 0, 0);
+
 			if (sin2ThetaT <= 1.0f) {
-				// No total internal reflection
 				float cosThetaT = sqrt(1.0f - sin2ThetaT);
 				vec3f refractDir = eta * incidentDir + (eta * cosThetaI - cosThetaT) * N;
-				refractDir= refractDir.normalize();  // Normalize the refracted direction
+				refractDir = refractDir.normalize();  // Normalize the refracted direction
 
 				// Offset the origin to avoid self-intersection
 				vec3f refractOrigin = Q + refractDir * RAY_EPSILON;
-
-				// Create the refracted ray
 				ray refractedRay(refractOrigin, refractDir);
-
-				// Trace the refracted ray recursively
-				vec3f refractedColor = traceRay(scene, refractedRay, thresh, depth + 1);
-
-				I += refractedColor.multiply(( m.kt));
+				refractedColor = traceRay(scene, refractedRay, thresh, depth + 1, mediumStack, k_product);
+				I +=  refractedColor.multiply(m.kt); // Refraction component
 			}
 
 		}

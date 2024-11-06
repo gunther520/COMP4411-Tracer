@@ -5,6 +5,10 @@
 
 #include "scene/scene.h"
 #include "scene/ray.h"
+#include <stack>
+#include <list>
+#include <any>
+
 
 class RayTracer
 {
@@ -13,7 +17,9 @@ public:
     ~RayTracer();
 
     vec3f trace( Scene *scene, double x, double y );
-	vec3f traceRay( Scene *scene, const ray& r, const vec3f& thresh, int depth );
+	vec3f traceRay( Scene *scene, const ray& r, const vec3f& thresh, int depth , 
+		stack<float> mediumStack = stack<float>(),
+		 list<vec3f> k_product = {vec3f(1.0,1.0,1.0),vec3f(1.0,1.0,1.0) });
 
 
 	void getBuffer( unsigned char *&buf, int &w, int &h );
@@ -27,6 +33,7 @@ public:
 	bool sceneLoaded();
 
 private:
+
 	unsigned char *buffer;
 	int buffer_width, buffer_height;
 	int bufferSize;
