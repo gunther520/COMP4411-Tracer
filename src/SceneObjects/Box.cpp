@@ -6,19 +6,28 @@
 #include <limits>
 #include <cmath>
 
+#include <cfloat>   // For DBL_MAX
+#include <cmath>    // For fabs()
+
 bool Box::intersectLocal(const ray& r, isect& i) const
+
 {
-    double Tnear = -std::numeric_limits<double>::infinity();
-    double Tfar = std::numeric_limits<double>::infinity();
+
+    i.obj = this;
+    double Tnear = -DBL_MAX;
+    double Tfar = DBL_MAX;
     vec3f p = r.getPosition();   // Ray origin
-    vec3f d = r.getDirection();  // Ray direction
+    vec3f d = r.getDirection().normalize();  // Ray direction
 
     // Get bounding box min and max points
-    vec3f min_ = this->getBoundingBox().min;
-    vec3f max_ = this->getBoundingBox().max;
+    //vec3f min_ = this->getBoundingBox().min;
+    //vec3f max_ = this->getBoundingBox().max;
+    vec3f min_(-0.5, -0.5, -0.5);
+    vec3f max_(0.5, 0.5, 0.5);
 
-    vec3f normalNear;
-    vec3f normalFar;
+
+    vec3f normalNear(0.0, 0.0, 0.0);
+    vec3f normalFar(0.0, 0.0, 0.0);
 
 
     for (int axis = 0; axis < 3; axis++) {
@@ -38,7 +47,7 @@ bool Box::intersectLocal(const ray& r, isect& i) const
             n1[axis] = -1.0;
             n2[axis] = 1.0;
 
-            if (T1 > T2) {
+            if (T1 > T2) { // T1 is intersection with near plane, T2 is intersection with far plane
                 std::swap(T1, T2);
                 std::swap(n1, n2);
             }
@@ -56,27 +65,22 @@ bool Box::intersectLocal(const ray& r, isect& i) const
             if (Tnear > Tfar) {
                 return false;
             }
-            if (Tfar < 0) {
+            if (Tfar < RAY_EPSILON) {
                 return false;
             }
         }
     }
 
     // Determine intersection point and normal
-    if (Tnear >= 0) {
-        i.t = Tnear;
-        i.N = normalNear;
-    }
-    else if (Tfar >= 0) {
-        // Ray starts inside the box
-        i.t = Tfar;
-        i.N = normalFar;
-    }
-    else {
-        return false;
-    }
+    
 
-    i.obj = this;
+	i.setT(Tnear);
+	i.setN(normalNear);
+
+
+
+    
     return true;
 }
+
 

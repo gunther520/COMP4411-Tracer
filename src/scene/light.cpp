@@ -48,10 +48,9 @@ double PointLight::distanceAttenuation( const vec3f& P ) const
 	
 	double atten = 1.0 / (traceUI->getAttenuationConstant() + 
 					traceUI->getLinearAttenuation() * d + 
-					traceUI->getQuadraticAttenuation() * d * d);
+					traceUI->getQuadraticAttenuation() * d * d+RAY_EPSILON);
 
 	atten = ((atten) < (1.0)) ? (atten) : (1.0);
-	printf("atten: %f\n", atten);
 	return atten;
 }
 
@@ -78,7 +77,7 @@ vec3f PointLight::shadowAttenuation(const vec3f& P) const
 	if (scene->intersect(r, i))
 		{
 		if ((r.at(i.t) - r.getPosition()).length() < (position - r.getPosition()).length())
-			return vec3f(0, 0, 0);
+			return (i.getMaterial().ke);
 		}
 	return vec3f(1, 1, 1);
 

@@ -39,8 +39,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-		vec3f incidentDir = r.getDirection();
-		incidentDir=incidentDir.normalize();  // Ensure incident direction is normalized
+		vec3f incidentDir = r.getDirection().normalize();
 
 		vec3f Q= r.at(i.t);
 		ray r1(Q, incidentDir);
@@ -51,7 +50,8 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 
 
 			vec3f reflectDir = incidentDir - 2 * (incidentDir * i.N) * i.N;
-			reflectDir= reflectDir.normalize();  // Normalize the reflected direction
+			//vec3f reflectDir = (2 * (incidentDir * i.N) * i.N) - incidentDir;  // Reflection of light around the normal
+			reflectDir = reflectDir.normalize();  // Normalize the reflected direction
 
 			// Offset the origin to avoid self-intersection
 			vec3f reflectOrigin = Q + reflectDir * RAY_EPSILON;
@@ -83,7 +83,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			}
 
 			float eta = n1 / n2;
-			float cosThetaI = -(incidentDir * N);  // Dot product between I and N
+			float cosThetaI = (-incidentDir * N);  // Dot product between I and N
 			float sin2ThetaI = max(0.0f, 1.0f - cosThetaI * cosThetaI);
 			float sin2ThetaT = eta * eta * sin2ThetaI;
 			if (sin2ThetaT <= 1.0f) {
@@ -101,7 +101,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 				// Trace the refracted ray recursively
 				vec3f refractedColor = traceRay(scene, refractedRay, thresh, depth + 1);
 
-				I += refractedColor.multiply(m.kt);
+				I += refractedColor.multiply(( m.kt));
 			}
 
 		}
