@@ -25,6 +25,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 	for ( litr= scene->beginLights(); litr != scene->endLights(); ++litr) {
 
 		vec3f lightDir = (*litr)->getDirection(r.getPosition());  // Direction from point to light source
+		vec3f lightColor = (*litr)->getColor(transparency);
 
 
 		vec3f atten = (*litr)->distanceAttenuation(r.getPosition())*
@@ -42,7 +43,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		//float specularFactor = max(0.0, i.N * halfwayDir);
 		vec3f specular = (ks * pow(specularFactor, (shininess * 128.0f))).multiply(transparency);  // Adjust shininess to control highlight sharpness
 		
-		I += atten.multiply(diffuse + specular);
+		I += atten.multiply(diffuse + specular.multiply(lightColor));
 
 	}
 	return I.clamp();

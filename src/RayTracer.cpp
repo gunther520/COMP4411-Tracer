@@ -46,7 +46,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		ray r1(Q, incidentDir);
 		const Material& m = i.getMaterial();
 		vec3f I = m.shade(scene, r1, i);
-
+	
 		if (mediumStack.empty()) {
 			mediumStack.push(1.0);  // Push the air refractive index onto the stack
 		}
@@ -75,17 +75,16 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			// Ray is exiting the material
 			n2 = n1;                    // Ray exits to previous medium
 			n1 = m.index;				// Get the current medium
-			mediumStack.pop();          // Pop the current medium off the stack
 			//k_product = { k_product.front()/m.kr,k_product.back()/m.kt };
 			N = -N;                     // Invert the normal for exiting
 		}
 
 
-		
 
 
 
-		
+
+
 
 
 		if (depth < traceUI->getDepth()) {
@@ -94,7 +93,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			reflectDir = reflectDir.normalize();  // Normalize the reflected direction
 
 			// Offset the origin to avoid self-intersection
-			vec3f reflectOrigin = Q + reflectDir * RAY_EPSILON;
+			vec3f reflectOrigin = Q + i.N * RAY_EPSILON;
 
 			// Create the reflected ray
 			ray reflectedRay(reflectOrigin, reflectDir);
