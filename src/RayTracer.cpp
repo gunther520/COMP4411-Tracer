@@ -46,12 +46,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		ray r1(Q, incidentDir);
 		const Material& m = i.getMaterial();
 		vec3f I = m.shade(scene, r1, i);
-	
-		if (mediumStack.empty()) {
-			mediumStack.push(1.0);  // Push the air refractive index onto the stack
-		}
-
-
+		vec3f N = i.N;
 
 		if (k_product.front()[0] < thresh[0] && k_product.back()[0] < thresh[0] &&
 			k_product.front()[1] < thresh[1] && k_product.back()[1] < thresh[1] &&
@@ -60,32 +55,51 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			return I;
 		}
 
+		if (mediumStack.empty()) {
+			// Use the dot product to determine if the ray starts inside the material or outside
+			if (incidentDir * N < 0) {
+				// Ray is entering the material from outside (or the viewpoint is in air)
+				mediumStack.push(1.0f);  // Assume the initial medium is air
+			}
+			else {
+				// Ray starts inside the material
+				mediumStack.push(m.index);  // Start inside the current medium
+			}
+		}
 
-		// Initially set the medium's refractive index (n1 and n2)
-		float n1 = mediumStack.top();
-		float n2 = m.index;
-		vec3f N = i.N;
+		// Determine if the ray is entering or exiting the material
+		float n1 = mediumStack.top();  // The refractive index of the current medium
+		float n2 = m.index;            // Refractive index of the intersected material
+
 		if (incidentDir * N < 0) {
 			// Ray is entering the material
 			mediumStack.push(n2);  // Push the new medium onto the stack
-			k_product.back() = k_product.back().multiply(m.kt);  // Update the cumulative kt product
-			k_product.front() = k_product.front().multiply(m.kr);  // Update the cumulative kr product
+
+			// Update cumulative products for kt and kr
+			k_product.back() = k_product.back().multiply(m.kt);  // Update cumulative kt product
+			k_product.front() = k_product.front().multiply(m.kr);  // Update cumulative kr product
 		}
 		else {
 			// Ray is exiting the material
-			n2 = n1;                    // Ray exits to previous medium
-			n1 = m.index;				// Get the current medium
-			//k_product = { k_product.front()/m.kr,k_product.back()/m.kt };
-			N = -N;                     // Invert the normal for exiting
+			mediumStack.pop();  // Pop the current medium off the stack
+
+			// Determine if the ray is transitioning directly to another medium or into air
+			ray offsetRay(Q + RAY_EPSILON * N, incidentDir);  // Offset ray to avoid self-intersection
+			isect nextIsect;
+
+			if (scene->intersect(offsetRay, nextIsect)) {
+				// The ray intersects another object immediately—transitioning from one material to another
+				n2 = nextIsect.getMaterial().index;  // Set n2 to the refractive index of the next medium
+				mediumStack.push(n2);  // Push the new medium onto the stack
+			}
+			else {
+				// The ray is exiting to air
+				n2 = 1.0f;
+			}
+		
+
+			N = -N;  // Invert the normal for correct exit calculations
 		}
-
-
-
-
-
-
-
-
 
 		if (depth < traceUI->getDepth()) {
 			vec3f reflectDir = incidentDir - 2 * (incidentDir * i.N) * i.N;
